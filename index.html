@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Biologi: Reproduksi Bunga s.d. Pembuahan Ganda</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        /* Custom styles for high-contrast options and transitions */
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.15);
+        }
+        .progress-bar-fill {
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col items-center justify-center p-3 sm:p-6 min-h-screen">
+
+    <!-- Container Utama -->
+    <div class="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-5 sm:p-8 transition-all duration-300">
+
+        <!-- ================= 1. START SCREEN ================= -->
+        <section id="start-screen" class="space-y-6">
+            <div class="text-center space-y-3">
+                <span class="inline-block bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+                    Ujian Biologi Interaktif
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                    Reproduksi Bunga s.d. Pembuahan Ganda
+                </h1>
+                <p class="text-sm sm:text-base text-slate-600 max-w-xl mx-auto">
+                    Uji pemahamanmu dengan 30 butir soal prediksi materi struktur bunga, pembelahan sel, gametogenesis, dan polinasi.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5">
+                <!-- Input Nama -->
+                <div>
+                    <label for="player-name" class="block text-sm font-semibold text-slate-700 mb-2">
+                        👤 Nama Lengkap Peserta
+                    </label>
+                    <input type="text" id="player-name" placeholder="Ketik nama Anda di sini..." 
+                           class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:outline-none transition font-medium text-slate-800 bg-white placeholder-slate-400">
+                    <p id="name-error" class="text-rose-500 text-xs font-medium mt-1.5 hidden">⚠️ Silakan isi nama sebelum memulai kuis!</p>
+                </div>
+
+                <!-- Pilihan Durasi -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        ⏱️ Pilih Durasi Waktu per Soal
+                    </label>
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="timer-duration" value="15" class="peer sr-only">
+                            <div class="p-3.5 text-center border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 rounded-xl transition font-semibold text-slate-700 peer-checked:text-emerald-800 shadow-sm">
+                                ⚡ 15 Detik <span class="block text-xs font-normal text-slate-500 peer-checked:text-emerald-700">Tantangan Cepat</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="timer-duration" value="30" class="peer sr-only" checked>
+                            <div class="p-3.5 text-center border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 rounded-xl transition font-semibold text-slate-700 peer-checked:text-emerald-800 shadow-sm">
+                                ⏳ 30 Detik <span class="block text-xs font-normal text-slate-500 peer-checked:text-emerald-700">Waktu Standar</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Aturan Kuis -->
+                <div class="text-xs text-slate-500 space-y-1 bg-white p-3.5 rounded-xl border border-slate-200">
+                    <p class="font-bold text-slate-700 mb-1">ℹ️ Ketentuan Kuis:</p>
+                    <p>• Kuis terdiri dari 30 soal pilihan ganda.</p>
+                    <p>• Urutan soal dan opsi jawaban akan diacak secara otomatis.</p>
+                    <p>• Jawaban benar otomatis diberi efek konfeti dan penanda warna hijau.</p>
+                </div>
+            </div>
+
+            <button id="btn-start" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-600/30 transition duration-150">
+                🚀 Mulai Kuis Sekarang
+            </button>
+        </section>
+
+
+        <!-- ================= 2. QUIZ SCREEN ================= -->
+        <section id="quiz-screen" class="hidden space-y-5">
+            <!-- Header Status -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">
+                        👤
+                    </div>
+                    <span id="display-player-name" class="font-bold text-slate-800 text-sm sm:text-base truncate max-w-[150px] sm:max-w-xs"></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="display-progress" class="text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200">
+                        Soal 1 / 30
+                    </span>
+                    <span id="display-score-live" class="text-xs sm:text-sm font-bold bg-amber-50 text-amber-700 px-3 py-1 rounded-full border border-amber-200">
+                        Skor: 0
+                    </span>
+                </div>
+            </div>
+
+            <!-- Timer Bar & Numeric Countdown -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-xs sm:text-sm font-bold">
+                    <span class="text-slate-600">Sisa Waktu Soal:</span>
+                    <span id="timer-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 transition-colors duration-300">
+                        <span id="time-left">30</span> Detik
+                    </span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div id="progress-bar-fill" class="progress-bar-fill bg-emerald-500 h-full w-full"></div>
+                </div>
+            </div>
+
+            <!-- Kartu Pertanyaan -->
+            <div class="min-h-[90px] bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center shadow-sm">
+                <p id="question-text" class="text-base sm:text-xl font-bold text-slate-900 leading-snug">
+                    Memuat pertanyaan...
+                </p>
+            </div>
+
+            <!-- Alert Notifikasi Saat Waktu Habis -->
+            <div id="timeout-banner" class="hidden py-2 px-3 bg-rose-50 border border-rose-200 text-rose-700 font-bold rounded-xl text-xs sm:text-sm text-center">
+                ⏰ Waktu habis! Berikut jawaban yang benar.
+            </div>
+
+            <!-- Pilihan Jawaban (A, B, C, D) -->
+            <div id="options-container" class="grid grid-cols-1 gap-3">
+                <!-- Render via JavaScript -->
+            </div>
+
+            <!-- Tombol Navigasi Manual (Opsional jika ingin lewati cepat) -->
+            <div class="flex justify-end pt-2">
+                <button id="btn-next" class="hidden px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold transition shadow-sm">
+                    Lanjut Soal Berikutnya ➔
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= 3. RESULT & REVIEW SCREEN ================= -->
+        <section id="result-screen" class="hidden space-y-6">
+            <!-- Header Ringkasan Skor -->
+            <div class="text-center space-y-3 bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-6 sm:p-8 rounded-3xl shadow-xl">
+                <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                    Kuis Selesai!
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    Kuis Biologi: Reproduksi Bunga s.d. Pembuahan Ganda
+                </h2>
+                <p class="text-emerald-100 text-sm font-medium">
+                    Hasil ujian untuk siswa: <span id="final-player-name" class="font-bold underline text-white"></span>
+                </p>
+                
+                <div class="pt-2 flex justify-center">
+                    <div class="bg-white text-slate-800 rounded-2xl px-6 py-4 shadow-lg text-center min-w-[200px]">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nilai Akhir</p>
+                        <p id="final-score" class="text-4xl sm:text-5xl font-black text-emerald-600 my-1">0</p>
+                        <p id="final-stats" class="text-xs font-semibold text-slate-600">0 dari 30 Soal Benar</p>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="btn-restart" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-bold rounded-xl shadow-md transition transform active:scale-95 text-sm">
+                        🔄 Ulangi Kuis (Acak Baru)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Review Detail Semua Jawaban -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="text-lg font-bold text-slate-900">
+                        📝 Review Seluruh Soal & Kunci Jawaban
+                    </h3>
+                    <span class="text-xs text-slate-500 font-medium">30 Soal</span>
+                </div>
+
+                <div id="review-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                    <!-- Dinamis terisi review jawaban -->
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Script Logika Kuis Lengkap -->
+    <script>
+        // Database 30 Soal Prediksi Sesuai Dokumen Materi Reproduksi Bunga s.d. Pembuahan
+        const masterQuestions = [
+            {
+                q: "Reproduksi generatif (seksual) pada tumbuhan berbiji tertutup (Angiospermae) terjadi pada organ...",
+                options: ["Akar", "Batang", "Bunga", "Daun"],
+                answer: "Bunga"
+            },
+            {
+                q: "Alat kelamin betina pada bunga disebut...",
+                options: ["Putik (Pistillum)", "Benang sari (Stamen)", "Kelopak (Kalyx)", "Mahkota (Corolla)"],
+                answer: "Putik (Pistillum)"
+            },
+            {
+                q: "Alat kelamin jantan pada bunga yang menghasilkan serbuk sari adalah...",
+                options: ["Putik (Pistillum)", "Benang sari (Stamen)", "Dasar bunga (Receptacle)", "Tangkai bunga (Pedicellus)"],
+                answer: "Benang sari (Stamen)"
+            },
+            {
+                q: "Bagian bunga yang berfungsi sebagai penyokong bunga adalah...",
+                options: ["Pedicellus (Tangkai bunga)", "Receptacle (Dasar bunga)", "Kalyx (Kelopak bunga)", "Corolla (Mahkota bunga)"],
+                answer: "Pedicellus (Tangkai bunga)"
+            },
+            {
+                q: "Dasar bunga (Receptacle) berfungsi utama sebagai...",
+                options: ["Tempat duduk bakal buah", "Penarik perhatian serangga", "Penyokong benang sari", "Tempat terjadinya penyerbukan"],
+                answer: "Tempat duduk bakal buah"
+            },
+            {
+                q: "Bagian perhiasan bunga yang bertugas melindungi kuncup bunga saat masih kecil adalah...",
+                options: ["Mahkota bunga (Corolla)", "Kelopak bunga (Kalyx)", "Kepala putik (Stigma)", "Kepala sari (Anthera)"],
+                answer: "Kelopak bunga (Kalyx)"
+            },
+            {
+                q: "Mahkota bunga (Corolla) memiliki warna yang mencolok dengan tujuan utama untuk...",
+                options: ["Menghasilkan cadangan makanan", "Melindungi bakal buah", "Menarik perhatian serangga penyerbuk", "Tempat melekatnya serbuk sari"],
+                answer: "Menarik perhatian serangga penyerbuk"
+            },
+            {
+                q: "Bagian putik yang menjadi tempat jatuhnya/menempelnya serbuk sari pada saat penyerbukan adalah...",
+                options: ["Kepala putik (Stigma)", "Tangkai putik (Stilus)", "Bakal biji (Ovulum)", "Bakal buah (Ovarium)"],
+                answer: "Kepala putik (Stigma)"
+            },
+            {
+                q: "Tangkai putik (Stilus) pada struktur alat kelamin betina berfungsi untuk...",
+                options: ["Menyokong kepala putik", "Menyimpan kotak serbuk sari", "Menghasilkan endosperma", "Menyokong mahkota"],
+                answer: "Menyokong kepala putik"
+            },
+            {
+                q: "Bagian putik yang berfungsi sebagai tempat dan pelindung bakal biji adalah...",
+                options: ["Ovarium (Bakal buah)", "Ovulum (Bakal biji)", "Filamen (Tangkai sari)", "Stigma (Kepala putik)"],
+                answer: "Ovarium (Bakal buah)"
+            },
+            {
+                q: "Tempat yang berfungsi melindungi sel telur (ovum) pada bunga adalah...",
+                options: ["Bakal biji (Ovulum)", "Tangkai sari (Filamen)", "Kotak sari (Teka)", "Dasar bunga (Receptacle)"],
+                answer: "Bakal biji (Ovulum)"
+            },
+            {
+                q: "Sel kelamin betina pada bunga tumbuhan berbiji disebut...",
+                options: ["Ovum (Sel telur)", "Polen (Serbuk sari)", "Spermatozoid", "Sinergid"],
+                answer: "Ovum (Sel telur)"
+            },
+            {
+                q: "Bagian benang sari yang berfungsi sebagai tempat kotak serbuk sari (teka) adalah...",
+                options: ["Kepala sari (Anthera)", "Tangkai sari (Filamen)", "Kepala putik (Stigma)", "Dasar bunga (Receptacle)"],
+                answer: "Kepala sari (Anthera)"
+            },
+            {
+                q: "Sel kelamin jantan atau sperma pada tumbuhan berbiji terkandung di dalam...",
+                options: ["Serbuk sari (Polen)", "Bakal biji", "Kandung lembaga", "Dasar bunga"],
+                answer: "Serbuk sari (Polen)"
+            },
+            {
+                q: "Ciri pembelahan mitosis berkaitan dengan jumlah kromosom sel anak adalah...",
+                options: [
+                    "Sama dengan jumlah kromosom sel induk (diploid / 2n)",
+                    "Setengah dari jumlah kromosom sel induk (haploid / n)",
+                    "Seperempat dari jumlah kromosom sel induk",
+                    "Dua kali lipat lebih banyak dari sel induk"
+                ],
+                answer: "Sama dengan jumlah kromosom sel induk (diploid / 2n)"
+            },
+            {
+                q: "Pembelahan sel yang menghasilkan sel baru dengan jumlah kromosom setengah dari sel induk (n) adalah...",
+                options: ["Meiosis", "Mitosis", "Amitosis", "Biner"],
+                answer: "Meiosis"
+            },
+            {
+                q: "Perbedaan lokasi terjadinya pembelahan mitosis dan meiosis yang tepat adalah...",
+                options: [
+                    "Mitosis di seluruh tubuh (sel somatis), meiosis hanya di alat kelamin",
+                    "Mitosis di sel kelamin, meiosis di seluruh sel tubuh",
+                    "Mitosis hanya di daun, meiosis di batang",
+                    "Mitosis di sel gamet jantan, meiosis di sel gamet betina"
+                ],
+                answer: "Mitosis di seluruh tubuh (sel somatis), meiosis hanya di alat kelamin"
+            },
+            {
+                q: "Jumlah sel anakan yang dihasilkan pada pembelahan mitosis dan meiosis secara berurutan adalah...",
+                options: [
+                    "2 sel dan 4 sel",
+                    "4 sel dan 2 sel",
+                    "1 sel dan 2 sel",
+                    "2 sel dan 8 sel"
+                ],
+                answer: "2 sel dan 4 sel"
+            },
+            {
+                q: "Fase pembelahan sel ketika kromatid berjajar tepat pada bidang pembelahan (ekuator/tengah) adalah...",
+                options: ["Metafase", "Profase", "Anafase", "Telofase"],
+                answer: "Metafase"
+            },
+            {
+                q: "Fase pembelahan sel ketika kromatid bergerak memisah menuju ke kutub-kutub yang berlawanan disebut...",
+                options: ["Anafase", "Profase", "Metafase", "Interfase"],
+                answer: "Anafase"
+            },
+            {
+                q: "Ciri utama dari fase pembelahan sel Telofase adalah...",
+                options: [
+                    "Terjadinya pembelahan sitoplasma/plasma (sitokinesis)",
+                    "Membran inti mulai melebur",
+                    "Kromosom berjejer di tengah bidang pembelahan",
+                    "Kromatid tertarik ke kutub berlawanan"
+                ],
+                answer: "Terjadinya pembelahan sitoplasma/plasma (sitokinesis)"
+            },
+            {
+                q: "Fase ketika sel masih terlihat benang-benang halus sebelum proses mitosis dimulai disebut...",
+                options: ["Interfase", "Profase", "Metafase", "Telofase"],
+                answer: "Interfase"
+            },
+            {
+                q: "Mikrosporogenesis adalah proses pembentukan serbuk sari yang berlangsung di dalam...",
+                options: [
+                    "Kepala sari (Anthera)",
+                    "Bakal biji (Ovulum)",
+                    "Kepala putik (Stigma)",
+                    "Tangkai putik (Stilus)"
+                ],
+                answer: "Kepala sari (Anthera)"
+            },
+            {
+                q: "Hasil akhir dari serbuk sari yang telah masak memiliki 3 inti haploid, yaitu...",
+                options: [
+                    "1 inti vegetatif dan 2 inti sperma",
+                    "2 inti vegetatif dan 1 inti sperma",
+                    "1 inti sel telur dan 2 inti sinergid",
+                    "3 inti kutub antipoda"
+                ],
+                answer: "1 inti vegetatif dan 2 inti sperma"
+            },
+            {
+                q: "Fungsi dari inti vegetatif pada serbuk sari yang telah menempel di kepala putik adalah...",
+                options: [
+                    "Membentuk dan memandu jalannya buluh serbuk sari menuju bakal biji",
+                    "Membuahi sel telur membentuk zigot",
+                    "Melebur dengan inti polar membentuk endosperma",
+                    "Sebagai cadangan nutrisi bagi embrio"
+                ],
+                answer: "Membentuk dan memandu jalannya buluh serbuk sari menuju bakal biji"
+            },
+            {
+                q: "Pada megasporogenesis, satu sel megaspora fungsional yang hidup membelah secara mitosis sebanyak 3 kali menghasilkan...",
+                options: [
+                    "8 inti haploid (n)",
+                    "4 inti diploid (2n)",
+                    "2 inti triploid (3n)",
+                    "16 inti haploid (n)"
+                ],
+                answer: "8 inti haploid (n)"
+            },
+            {
+                q: "Di dalam kandung lembaga, 3 inti yang terletak di dekat mikropil terdiri atas...",
+                options: [
+                    "1 inti sel telur (ovum) dan 2 inti sinergid",
+                    "3 inti antipoda",
+                    "2 inti polar sekunder dan 1 ovum",
+                    "1 inti vegetatif dan 2 inti sperma"
+                ],
+                answer: "1 inti sel telur (ovum) dan 2 inti sinergid"
+            },
+            {
+                q: "Pada peristiwa pembuahan ganda Angiospermae, peleburan inti sperma 1 dengan sel telur (ovum) akan menghasilkan...",
+                options: [
+                    "Zigot yang bersifat diploid (2n)",
+                    "Endosperma yang bersifat triploid (3n)",
+                    "Bakal buah",
+                    "Sel sinergid baru"
+                ],
+                answer: "Zigot yang bersifat diploid (2n)"
+            },
+            {
+                q: "Peleburan antara salah satu inti sperma dengan Inti Kandung Lembaga Sekunder (IKLS) akan menghasilkan...",
+                options: [
+                    "Endosperma cadangan makanan (3n)",
+                    "Zigot calon individu (2n)",
+                    "Kromosom haploid (n)",
+                    "Embrio baru"
+                ],
+                answer: "Endosperma cadangan makanan (3n)"
+            },
+            {
+                q: "Penyerbukan yang terjadi antara serbuk sari dan putik dari tanaman sejenis tetapi berbeda varietas (misal mangga golek dengan mangga manalagi) disebut penyerbukan...",
+                options: [
+                    "Bastar",
+                    "Silang (Alogami)",
+                    "Serumah (Geitonogami)",
+                    "Sendiri (Autogami)"
+                ],
+                answer: "Bastar"
+            }
+        ];
+
+        // State Aplikasi
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let selectedDuration = 30;
+        let timer = null;
+        let timeLeft = 30;
+        let playerName = "";
+        let userResponses = []; // Menyimpan: { question, options, selected, correct, isCorrect }
+
+        // Referensi Elemen DOM
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        const playerNameInput = document.getElementById('player-name');
+        const nameError = document.getElementById('name-error');
+        const btnStart = document.getElementById('btn-start');
+        const btnRestart = document.getElementById('btn-restart');
+        const btnNext = document.getElementById('btn-next');
+
+        const displayPlayerName = document.getElementById('display-player-name');
+        const displayProgress = document.getElementById('display-progress');
+        const displayScoreLive = document.getElementById('display-score-live');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const timeLeftSpan = document.getElementById('time-left');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const timerBadge = document.getElementById('timer-badge');
+        const timeoutBanner = document.getElementById('timeout-banner');
+
+        const finalPlayerName = document.getElementById('final-player-name');
+        const finalScore = document.getElementById('final-score');
+        const finalStats = document.getElementById('final-stats');
+        const reviewContainer = document.getElementById('review-container');
+
+        // Fungsi Shuffle Array (Fisher-Yates)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Efek Confetti
+        function triggerConfetti() {
+            try {
+                confetti({
+                    particleCount: 50,
+                    spread: 70,
+                    origin: { y: 0.7 },
+                    colors: ['#10b981', '#059669', '#34d399', '#f59e0b']
+                });
+            } catch (e) {
+                // Ignore jika library canvas-confetti belum siap
+            }
+        }
+
+        // Memulai Kuis Baru
+        function startQuiz() {
+            const inputVal = playerNameInput.value.trim();
+            if (!inputVal) {
+                nameError.classList.remove('hidden');
+                playerNameInput.focus();
+                return;
+            }
+            nameError.classList.add('hidden');
+            playerName = inputVal;
+
+            // Baca Durasi yang dipilih
+            const selectedRadio = document.querySelector('input[name="timer-duration"]:checked');
+            selectedDuration = selectedRadio ? parseInt(selectedRadio.value, 10) : 30;
+
+            // Acak soal dan acak pilihan jawaban untuk masing-masing soal
+            currentQuestions = shuffleArray(masterQuestions).map(q => {
+                return {
+                    q: q.q,
+                    options: shuffleArray(q.options),
+                    answer: q.answer
+                };
+            });
+
+            currentIndex = 0;
+            score = 0;
+            userResponses = [];
+
+            // UI Switch
+            displayPlayerName.textContent = playerName;
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        // Load Soal per Index
+        function loadQuestion() {
+            clearInterval(timer);
+            btnNext.classList.add('hidden');
+            timeoutBanner.classList.add('hidden');
+
+            const current = currentQuestions[currentIndex];
+
+            // Update Info Header
+            displayProgress.textContent = `Soal ${currentIndex + 1} / ${currentQuestions.length}`;
+            displayScoreLive.textContent = `Skor: ${Math.round((score / currentQuestions.length) * 100)}`;
+            questionText.textContent = `${currentIndex + 1}. ${current.q}`;
+
+            // Render Opsi Jawaban dengan Kontras Tinggi (Teks gelap di latar terang yang kontras)
+            optionsContainer.innerHTML = '';
+            current.options.forEach((opt, idx) => {
+                const letter = String.fromCharCode(65 + idx); // A, B, C, D
+                const button = document.createElement('button');
+                button.className = `option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-semibold flex items-center gap-3.5 focus:outline-none transition shadow-sm`;
+                button.innerHTML = `
+                    <span class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        ${letter}
+                    </span>
+                    <span class="text-slate-800 font-medium text-sm sm:text-base leading-snug flex-grow">
+                        ${opt}
+                    </span>
+                `;
+                button.addEventListener('click', () => handleAnswerSelect(opt, button));
+                optionsContainer.appendChild(button);
+            });
+
+            // Start Timer Soal
+            startTimer();
+        }
+
+        // Pengatur Timer Hitung Mundur
+        function startTimer() {
+            timeLeft = selectedDuration;
+            timeLeftSpan.textContent = timeLeft;
+            progressBarFill.style.width = '100%';
+            progressBarFill.className = 'progress-bar-fill h-full w-full bg-emerald-500';
+            timerBadge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 transition-colors duration-300';
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timeLeftSpan.textContent = timeLeft;
+
+                const percent = (timeLeft / selectedDuration) * 100;
+                progressBarFill.style.width = `${percent}%`;
+
+                // Pergantian warna jika mendekati waktu habis
+                if (timeLeft <= 5) {
+                    progressBarFill.className = 'progress-bar-fill h-full bg-rose-500';
+                    timerBadge.className = 'px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 transition-colors duration-300';
+                } else if (timeLeft <= 10) {
+                    progressBarFill.className = 'progress-bar-fill h-full bg-amber-500';
+                    timerBadge.className = 'px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 transition-colors duration-300';
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        // Handler Jawaban Dipilih oleh User
+        function handleAnswerSelect(selectedAnswer, clickedButton) {
+            clearInterval(timer);
+            const current = currentQuestions[currentIndex];
+            const isCorrect = selectedAnswer === current.answer;
+
+            // Catat respons
+            userResponses.push({
+                question: current.q,
+                options: current.options,
+                selected: selectedAnswer,
+                correct: current.answer,
+                isCorrect: isCorrect,
+                timedOut: false
+            });
+
+            // Disable all buttons
+            const allButtons = optionsContainer.querySelectorAll('button');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                score++;
+                triggerConfetti();
+                // Hijau tegas dengan font putih kontras tinggi
+                clickedButton.classList.remove('bg-white', 'border-slate-200');
+                clickedButton.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600', 'shadow-md');
+                const badge = clickedButton.querySelector('span');
+                badge.className = 'w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm flex-shrink-0';
+                const text = clickedButton.querySelectorAll('span')[1];
+                text.className = 'text-white font-bold text-sm sm:text-base leading-snug flex-grow';
+            } else {
+                // Merah tegas dengan font putih kontras tinggi
+                clickedButton.classList.remove('bg-white', 'border-slate-200');
+                clickedButton.classList.add('bg-rose-600', 'text-white', 'border-rose-600', 'shadow-md');
+                const badge = clickedButton.querySelector('span');
+                badge.className = 'w-8 h-8 rounded-lg bg-rose-700 text-white flex items-center justify-center font-bold text-sm flex-shrink-0';
+                const text = clickedButton.querySelectorAll('span')[1];
+                text.className = 'text-white font-bold text-sm sm:text-base leading-snug flex-grow';
+
+                // Tampilkan jawaban yang benar berwarna hijau
+                allButtons.forEach(btn => {
+                    const btnText = btn.querySelectorAll('span')[1].textContent.trim();
+                    if (btnText === current.answer) {
+                        btn.classList.remove('bg-white', 'border-slate-200');
+                        btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500');
+                        btn.querySelector('span').className = 'w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm flex-shrink-0';
+                        btn.querySelectorAll('span')[1].className = 'text-white font-bold text-sm sm:text-base leading-snug flex-grow';
+                    }
+                });
+            }
+
+            displayScoreLive.textContent = `Skor: ${Math.round((score / currentQuestions.length) * 100)}`;
+            btnNext.classList.remove('hidden');
+
+            // Auto-advance setelah 2 detik
+            setTimeout(() => {
+                goToNextQuestion();
+            }, 2000);
+        }
+
+        // Handler Saat Waktu Habis
+        function handleTimeOut() {
+            const current = currentQuestions[currentIndex];
+            timeoutBanner.classList.remove('hidden');
+
+            // Catat respons tidak dijawab
+            userResponses.push({
+                question: current.q,
+                options: current.options,
+                selected: null,
+                correct: current.answer,
+                isCorrect: false,
+                timedOut: true
+            });
+
+            // Highlight jawaban yang benar
+            const allButtons = optionsContainer.querySelectorAll('button');
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                const btnText = btn.querySelectorAll('span')[1].textContent.trim();
+                if (btnText === current.answer) {
+                    btn.classList.remove('bg-white', 'border-slate-200');
+                    btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+                    btn.querySelector('span').className = 'w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm flex-shrink-0';
+                    btn.querySelectorAll('span')[1].className = 'text-white font-bold text-sm sm:text-base leading-snug flex-grow';
+                }
+            });
+
+            btnNext.classList.remove('hidden');
+
+            setTimeout(() => {
+                goToNextQuestion();
+            }, 2500);
+        }
+
+        // Berpindah ke Pertanyaan Berikutnya atau Tampilkan Hasil
+        function goToNextQuestion() {
+            if (currentIndex + 1 < currentQuestions.length) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Tampilkan Layar Hasil dan Review
+        function showResults() {
+            clearInterval(timer);
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            // Hitung skor akhir persis: (jumlah benar / total soal) * 100
+            const finalScoreVal = Math.round((score / currentQuestions.length) * 100);
+
+            finalPlayerName.textContent = playerName;
+            finalScore.textContent = finalScoreVal;
+            finalStats.textContent = `${score} dari ${currentQuestions.length} Soal Dijawab Benar`;
+
+            if (finalScoreVal >= 75) {
+                triggerConfetti();
+            }
+
+            // Render Review Seluruh Soal
+            reviewContainer.innerHTML = '';
+            userResponses.forEach((res, i) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-4 rounded-2xl border-2 transition ${
+                    res.isCorrect 
+                        ? 'border-emerald-200 bg-emerald-50/50' 
+                        : 'border-rose-200 bg-rose-50/50'
+                }`;
+
+                let userChoiceHtml = '';
+                if (res.timedOut) {
+                    userChoiceHtml = `<span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-700">⏰ Waktu Habis (Tidak Menjawab)</span>`;
+                } else if (res.isCorrect) {
+                    userChoiceHtml = `<span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 text-white">✓ ${res.selected}</span>`;
+                } else {
+                    userChoiceHtml = `<span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-rose-600 text-white">✗ ${res.selected}</span>`;
+                }
+
+                itemDiv.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded ${res.isCorrect ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'}">
+                            No. ${i + 1} ${res.isCorrect ? '• Benar' : '• Salah'}
+                        </span>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-800 mb-3">${res.question}</p>
+                    <div class="space-y-1.5 text-xs sm:text-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span class="font-semibold text-slate-600 min-w-[120px]">Jawaban Anda:</span>
+                            <div>${userChoiceHtml}</div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span class="font-semibold text-slate-600 min-w-[120px]">Kunci Jawaban:</span>
+                            <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                🔑 ${res.correct}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                reviewContainer.appendChild(itemDiv);
+            });
+
+            // Scroll ke atas
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Event Listeners
+        btnStart.addEventListener('click', startQuiz);
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startQuiz();
+        });
+
+        btnNext.addEventListener('click', () => {
+            goToNextQuestion();
+        });
+
+        btnRestart.addEventListener('click', () => {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
